@@ -4,6 +4,7 @@
 const balance = document.getElementById('balance');
 const moneyPlus = document.getElementById('money-plus');
 const moneyMinus = document.getElementById('money-minus');
+const moneySaved = document.getElementById('money-saved');
 const list = document.getElementById('list');
 const form = document.getElementById('form');
 const text = document.getElementById('text');
@@ -142,6 +143,10 @@ let transactions = localStorage.getItem('transactions') !== null
   ? localStorageTransactions
   : [];
 
+let emergencySavings = parseFloat(localStorage.getItem('emergencySavings')) || 0;
+let emergencyGoal = parseFloat(localStorage.getItem('emergencyGoal')) || 20000;
+let lastSavingDate = localStorage.getItem('lastSavingDate') || '';
+
 // ============================================
 // 4. Form Submit hone par Popup Modal dikhana
 // ============================================
@@ -279,7 +284,7 @@ function addTransactionDOM(transaction) {
 // ============================================
 // 7. Total Balance, Income, Expense & Ratio Bar Update
 // ============================================
-function updateValues() {
+function getTotals() {
   let totalIncome = 0;
   let totalExpense = 0;
 
@@ -291,23 +296,32 @@ function updateValues() {
     }
   });
 
-  const totalBalance = totalIncome - totalExpense;
-  const absBalance = Math.abs(totalBalance);
-  const balanceSign = totalBalance < 0 ? '-' : '';
+  // Available Balance = Income - Expense - Emergency Fund Saved
+  const availableBalance = totalIncome - totalExpense - emergencySavings;
+  return { totalIncome, totalExpense, availableBalance };
+}
+
+function updateValues() {
+  const { totalIncome, totalExpense, availableBalance } = getTotals();
+
+  const absBalance = Math.abs(availableBalance);
+  const balanceSign = availableBalance < 0 ? '-' : '';
 
   balance.innerText = `${balanceSign}₹${formatINR(absBalance)}`;
-  balance.classList.toggle('negative', totalBalance < 0);
+  balance.classList.toggle('negative', availableBalance < 0);
 
   moneyPlus.innerText = `+₹${formatINR(totalIncome)}`;
   moneyMinus.innerText = `-₹${formatINR(totalExpense)}`;
+  moneySaved.innerText = emergencySavings > 0 ? `-₹${formatINR(emergencySavings)}` : '₹0.00';
 
-  // Spending Ratio Progress Bar calculation
+  // Spending + Saving Ratio Progress Bar calculation
   if (totalIncome > 0) {
-    const rawPercent = Math.round((totalExpense / totalIncome) * 100);
-    const barWidth = Math.min(rawPercent, 100);
+    const spentPct = Math.round((totalExpense / totalIncome) * 100);
+    const savedPct = Math.round((emergencySavings / totalIncome) * 100);
+    const barWidth = Math.min(spentPct + savedPct, 100);
     progressFill.style.width = `${barWidth}%`;
-    spendingPercent.innerText = `${rawPercent}% of income spent`;
-  } else if (totalExpense > 0) {
+    spendingPercent.innerText = `${spentPct}% spent • ${savedPct}% saved`;
+  } else if (totalExpense > 0 || emergencySavings > 0) {
     progressFill.style.width = '100%';
     spendingPercent.innerText = 'No income added yet';
   } else {
@@ -358,8 +372,32 @@ function renderList() {
 // ============================================
 // 9. Transaction Delete Karna
 // ============================================
+function syncEmergencyAfterDelete(removedTx) {
+  if (transactions.length === 0) {
+    emergencySavings = 0;
+    lastSavingDate = '';
+    saveEmergencyStorage();
+    return;
+  }
+
+  // Agar Income delete hui hai, toh Emergency Fund ko bache hue balance ke hisaab se adjust karein
+  if (removedTx && removedTx.type === 'income') {
+    const { totalIncome, totalExpense } = getTotals();
+    const maxAllowedSaving = Math.max(totalIncome - totalExpense, 0);
+    if (emergencySavings > maxAllowedSaving) {
+      emergencySavings = maxAllowedSaving;
+      if (emergencySavings === 0) {
+        lastSavingDate = '';
+      }
+      saveEmergencyStorage();
+    }
+  }
+}
+
 function removeTransaction(id) {
+  const removedTx = transactions.find(transaction => transaction.id === id);
   transactions = transactions.filter(transaction => transaction.id !== id);
+  syncEmergencyAfterDelete(removedTx);
   updateLocalStorage();
   init();
 }
@@ -374,10 +412,6 @@ function updateLocalStorage() {
 // ============================================
 // 11. Emergency Savings Fund Logic
 // ============================================
-let emergencySavings = parseFloat(localStorage.getItem('emergencySavings')) || 0;
-let emergencyGoal = parseFloat(localStorage.getItem('emergencyGoal')) || 20000;
-let lastSavingDate = localStorage.getItem('lastSavingDate') || '';
-
 function saveEmergencyStorage() {
   localStorage.setItem('emergencySavings', emergencySavings);
   localStorage.setItem('emergencyGoal', emergencyGoal);
@@ -408,6 +442,13 @@ function depositToEmergency(amt) {
     alert('Kripya sahi saving amount dalein');
     return;
   }
+
+  const { availableBalance } = getTotals();
+  if (amt > availableBalance) {
+    alert(`Aapke Total Available Balance (₹${formatINR(Math.max(availableBalance, 0))}) me itne paise nahi hain! Pehle Income add karein ya kam amount save karein.`);
+    return;
+  }
+
   emergencySavings += amt;
   lastSavingDate = new Date().toLocaleDateString('en-IN', {
     day: 'numeric',
@@ -416,6 +457,7 @@ function depositToEmergency(amt) {
   });
   saveEmergencyStorage();
   updateSavingsUI();
+  updateValues();
 }
 
 function withdrawFromEmergency(amt) {
@@ -430,6 +472,7 @@ function withdrawFromEmergency(amt) {
   emergencySavings -= amt;
   saveEmergencyStorage();
   updateSavingsUI();
+  updateValues();
 }
 
 // Quick 1-click preset chips (+₹500, +₹1000, etc.)
@@ -489,6 +532,13 @@ function init() {
   renderList();
   updateValues();
   updateSavingsUI();
+}
+
+// Agar koi transaction nahi bacha hai toh purani bachi hui emergency saving reset karein
+if (transactions.length === 0 && emergencySavings > 0) {
+  emergencySavings = 0;
+  lastSavingDate = '';
+  saveEmergencyStorage();
 }
 
 form.addEventListener('submit', addTransaction);

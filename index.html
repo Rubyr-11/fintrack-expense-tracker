@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinTrack - Smart Expense Tracker</title>
+  <!-- Modern Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- Top Brand Header -->
+    <header class="top-navbar">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+          </svg>
+        </div>
+        <div>
+          <h1>FinTrack</h1>
+          <p class="subtitle">Apne kharcho aur income ka smart hisaab</p>
+        </div>
+      </div>
+      <div class="header-badge" id="today-badge">Smart Dashboard</div>
+    </header>
+
+    <!-- Main 2-Column Dashboard Grid -->
+    <main class="dashboard-grid">
+      
+      <!-- LEFT COLUMN: Balance Card + Add Form -->
+      <section class="left-column">
+        
+        <!-- Hero Credit-Card Style Balance Card -->
+        <div class="balance-card">
+          <div class="balance-top">
+            <span class="balance-label">Total Available Balance</span>
+            <span class="wallet-chip">INR &#8377;</span>
+          </div>
+          
+          <h2 id="balance" class="balance-amount">&#8377;0.00</h2>
+
+          <!-- Spending Progress Bar -->
+          <div class="budget-progress-wrap">
+            <div class="budget-progress-info">
+              <span>Spending Ratio</span>
+              <span id="spending-percent">0% of income spent</span>
+            </div>
+            <div class="progress-track">
+              <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Glassmorphic Income & Expense Mini Cards -->
+          <div class="inc-exp-grid">
+            <div class="glass-stat income">
+              <div class="stat-icon up">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+              </div>
+              <div>
+                <span class="stat-label">Total Income</span>
+                <p id="money-plus" class="stat-value">+&#8377;0.00</p>
+              </div>
+            </div>
+
+            <div class="glass-stat expense">
+              <div class="stat-icon down">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+              </div>
+              <div>
+                <span class="stat-label">Total Expense</span>
+                <p id="money-minus" class="stat-value">-&#8377;0.00</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Transaction Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <h3>Naya Transaction Jodein</h3>
+          </div>
+
+          <form id="form">
+            <div class="form-control">
+              <label for="text">Title / Description</label>
+              <input type="text" id="text" placeholder="Jaise: Chai, Salary, Books..." required />
+            </div>
+
+            <div class="form-row">
+              <div class="form-control">
+                <label for="amount">Amount (&#8377;)</label>
+                <input type="number" id="amount" placeholder="500" min="1" step="any" required />
+              </div>
+
+              <div class="form-control">
+                <label for="date">Date</label>
+                <input type="date" id="date" required />
+              </div>
+            </div>
+
+            <div class="form-control">
+              <label for="category">Category</label>
+              <select id="category">
+                <option value="Other" selected>🏷️ General / Other</option>
+                <option value="Food">🍔 Food &amp; Dining</option>
+                <option value="Education">📚 Education &amp; Books</option>
+                <option value="Travel">🚗 Travel &amp; Commute</option>
+                <option value="Shopping">🛍️ Shopping</option>
+                <option value="Bills">💡 Bills &amp; Utilities</option>
+                <option value="Salary">💰 Salary &amp; Income</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <span>+</span> Transaction Add Karein
+            </button>
+          </form>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: Emergency Savings + History -->
+      <section class="right-column">
+
+        <!-- Emergency Savings Fund Card -->
+        <div class="card savings-card">
+          <div class="savings-header">
+            <div class="savings-title-wrap">
+              <div class="shield-icon">🛡️</div>
+              <div>
+                <h3>Emergency Savings Fund</h3>
+                <p class="savings-sub">Har mahine thoda save karein, emergency ke liye</p>
+              </div>
+            </div>
+            <button type="button" id="edit-goal-btn" class="edit-goal-btn">Edit Goal</button>
+          </div>
+
+          <!-- Hidden Goal Editor -->
+          <div id="goal-editor" class="goal-editor hidden">
+            <input type="number" id="goal-input" placeholder="Naya Goal (e.g. 25000)" min="100" />
+            <button type="button" id="save-goal-btn" class="btn-small-primary">Set Goal</button>
+          </div>
+
+          <!-- Saved vs Target Display -->
+          <div class="savings-stats">
+            <div>
+              <span class="savings-label">Total Saved</span>
+              <h2 id="savings-amount" class="savings-value">&#8377;0.00</h2>
+            </div>
+            <div class="savings-target-box">
+              <span class="savings-label">Emergency Goal</span>
+              <p id="savings-goal" class="savings-target">&#8377;20,000.00</p>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="savings-progress-wrap">
+            <div class="savings-progress-track">
+              <div id="savings-progress-fill" class="savings-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="savings-progress-meta">
+              <span id="savings-percent">0% completed</span>
+              <span id="savings-status">Start saving today!</span>
+            </div>
+          </div>
+
+          <!-- 1-Click Quick Save Chips -->
+          <div class="quick-save-chips">
+            <button type="button" class="chip-btn" data-save="500">+&#8377;500</button>
+            <button type="button" class="chip-btn" data-save="1000">+&#8377;1,000</button>
+            <button type="button" class="chip-btn" data-save="2000">+&#8377;2,000</button>
+            <button type="button" class="chip-btn" data-save="5000">+&#8377;5,000</button>
+          </div>
+
+          <!-- Custom Amount Save / Withdraw -->
+          <div class="savings-actions">
+            <input type="number" id="saving-input" placeholder="Amount dalein (&#8377;)" min="1" />
+            <button type="button" id="add-saving-btn" class="btn-save-money">+ Save</button>
+            <button type="button" id="withdraw-saving-btn" class="btn-withdraw-money" title="Emergency me use karein">Use</button>
+          </div>
+        </div>
+
+        <div class="card history-card">
+          <div class="history-header">
+            <div class="history-title-wrap">
+              <h3>Transaction History</h3>
+              <span id="tx-count" class="count-pill">0 items</span>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="filter-tabs" id="filter-tabs">
+              <button type="button" class="filter-btn active" data-filter="all">All</button>
+              <button type="button" class="filter-btn" data-filter="income">Income</button>
+              <button type="button" class="filter-btn" data-filter="expense">Expense</button>
+            </div>
+          </div>
+
+          <ul id="list" class="list">
+            <!-- JavaScript se dynamic items yahan render honge -->
+          </ul>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Confirmation Popup Modal: Ask Expense or Income -->
+  <div id="type-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <div class="modal-icon">🤔</div>
+      <h3 id="modal-title">Yeh Transaction Kya Hai?</h3>
+      <p class="modal-desc">Save karne se pehle select karein ki yeh kharcha hai ya kamai:</p>
+
+      <div class="modal-preview" id="modal-preview">
+        <!-- JS se preview details yahan dikhengi -->
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="confirm-expense-btn" class="modal-btn expense-btn">
+          <span>&#8595;</span> Expense (Kharcha)
+        </button>
+        <button type="button" id="confirm-income-btn" class="modal-btn income-btn">
+          <span>&#8593;</span> Income (Kamai)
+        </button>
+      </div>
+
+      <button type="button" id="cancel-modal-btn" class="modal-cancel">Cancel &amp; Edit</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
